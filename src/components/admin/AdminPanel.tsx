@@ -1,6 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { ProvidersTab } from './ProvidersTab';
+import { ModelsTab } from './ModelsTab';
+import { SecretsTab } from './SecretsTab';
 import type { AppState } from '@/lib/types';
 
 interface AdminPanelProps {
@@ -9,14 +11,21 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({ state, onUpdateState }: AdminPanelProps) {
+  const handleModelsDiscovered = (providerId: string, models: string[]) => {
+    const updatedProviders = state.providers.map(p => 
+      p.id === providerId ? { ...p, models } : p
+    );
+    onUpdateState({ ...state, providers: updatedProviders });
+  };
+
   return (
     <Card className="p-6">
       <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
       <Tabs defaultValue="providers">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="providers">Providers</TabsTrigger>
-          <TabsTrigger value="models">Models</TabsTrigger>
           <TabsTrigger value="secrets">Secrets</TabsTrigger>
+          <TabsTrigger value="models">Models</TabsTrigger>
         </TabsList>
 
         <TabsContent value="providers" className="mt-4">
@@ -26,16 +35,22 @@ export function AdminPanel({ state, onUpdateState }: AdminPanelProps) {
           />
         </TabsContent>
 
-        <TabsContent value="models" className="mt-4">
-          <div className="text-center py-8 text-muted-foreground">
-            Models management - Configure AI models for each provider
-          </div>
+        <TabsContent value="secrets" className="mt-4">
+          <SecretsTab
+            providers={state.providers}
+            secrets={state.secrets}
+            onUpdate={(secrets) => onUpdateState({ ...state, secrets })}
+            onModelsDiscovered={handleModelsDiscovered}
+          />
         </TabsContent>
 
-        <TabsContent value="secrets" className="mt-4">
-          <div className="text-center py-8 text-muted-foreground">
-            Secrets management - Store encrypted API keys
-          </div>
+        <TabsContent value="models" className="mt-4">
+          <ModelsTab
+            providers={state.providers}
+            models={state.models}
+            secrets={state.secrets}
+            onUpdate={(models) => onUpdateState({ ...state, models })}
+          />
         </TabsContent>
       </Tabs>
     </Card>

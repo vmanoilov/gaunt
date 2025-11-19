@@ -2,6 +2,54 @@
 
 All notable changes to GauntletFuse will be documented in this file.
 
+## [1.2.0] - 2025-11-19
+
+### Added
+- **Secrets Management**: Full API key management with AES-GCM encryption
+  - Add/update/remove API keys for each provider
+  - Master passphrase protection (minimum 8 characters)
+  - Visual indicators for providers with valid keys
+  - Secure client-side encryption
+
+- **Model Discovery**: Automatic model detection from API keys
+  - "Discover Available Models" button in Secrets tab
+  - Simulated API calls to fetch available models per provider
+  - Automatic population of provider model lists
+  - Mock data for 15+ providers
+
+- **Models Management**: Complete model configuration interface
+  - Add/edit/delete model configurations
+  - Only show providers with valid API keys
+  - Configure temperature, top-P, max tokens
+  - Base URL override option
+  - Visual badges for model parameters
+
+- **Team Model Assignment**: Assign specific models to agents
+  - Edit button on each participant card
+  - Dialog-based model selection
+  - Only show models with valid API keys
+  - Visual indicators (✓/✗) for key validity
+  - Display model details (temperature, top-P, max tokens)
+  - Real-time agent updates
+
+- **Enhanced Participants Panel**:
+  - Show model and provider information
+  - Validation status indicators
+  - Warning messages for missing keys/models
+  - Improved role labels (e.g., "Red (Divergent)")
+
+### Changed
+- **Admin Panel Tab Order**: Reordered to Providers → Secrets → Models (logical workflow)
+- **Participants Component**: Now requires models, providers, and secrets props
+- **App State Management**: Added handleUpdateAgent function for agent modifications
+
+### Technical Details
+- Created `SecretsTab.tsx` (240 lines) - Full secrets management UI
+- Created `ModelsTab.tsx` (230 lines) - Complete models configuration
+- Updated `AdminPanel.tsx` - Integrated new tabs with model discovery callback
+- Updated `Participants.tsx` - Added model assignment dialog and validation
+- Updated `App.tsx` - Added agent update handler
+
 ## [1.1.0] - 2025-11-19
 
 ### Changed

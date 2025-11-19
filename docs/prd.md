@@ -21,6 +21,8 @@ GauntletFuse 是一个多智能体创意探索平台，允许多个 AI 智能体
 - 智能体配置：包含 id、名称、角色、模型、提供商 ID、温度参数
 - 默认会话配置：Gemini = Red，Mistral = Blue，GPT = Purple
 - 可编辑角色和模型分配
+- **模型过滤机制：参与者面板中仅显示已配置有效 API 密钥的提供商的模型**
+- **按团队分配模型：支持为 Red、Blue、Purple 三个团队分别指定可用模型列表**
 
 ### 2.2 轮次引擎（Turn Engine）
 - 顺序执行 Red → Blue → Purple 循环
@@ -38,6 +40,8 @@ GauntletFuse 是一个多智能体创意探索平台，允许多个 AI 智能体
 - 显示当前会话参与者
 - 编辑角色和模型分配
 - 实时状态显示
+- **仅显示已配置有效 API 密钥的提供商模型**
+- **支持按团队（Red/Blue/Purple）筛选和分配模型**
 
 ### 2.5 竞技场（Arena）
 - 聊天式消息流展示
@@ -80,16 +84,21 @@ GauntletFuse 是一个多智能体创意探索平台，允许多个 AI 智能体
   - DeepSeek：https://platform.deepseek.com
   - Moonshot：https://platform.moonshot.cn
 - 配置字段：名称、基础 URL、类型、API 密钥获取链接、备注
+- **API 密钥验证后模型查询功能：输入 API 密钥后，提供〖查询可用模型〗按钮，调用提供商 API 获取该密钥下所有可用模型列表**
 
 #### 2.9.2 模型管理（Models）
 - 与提供商关联的 CRUD 操作
 - 模型配置：id、providerId、model、label、temperature、topP、maxTokens、baseUrlOverride
+- **动态模型列表：从提供商 API 查询获取的模型可直接添加到模型列表**
+- **模型选择器：支持从查询到的可用模型列表中勾选并批量添加**
+- **团队标签：为每个模型添加可选的团队标签（Red/Blue/Purple/All），用于参与者面板筛选**
 
 #### 2.9.3 密钥管理（Secrets）
 - AES-GCM 本地加密
 - 密码短语解锁机制
 - 密钥别名管理
 - 不记录密钥日志
+- **密钥有效性标记：显示每个密钥是否已验证有效**
 
 #### 2.9.4 连接器管理（Connectors）
 - 创建/编辑自定义连接器代码
@@ -101,6 +110,7 @@ GauntletFuse 是一个多智能体创意探索平台，允许多个 AI 智能体
 - 完整性检查
 - 检测缺失密钥
 - 验证无效标识符
+- **API 密钥有效性验证：测试每个提供商的 API 密钥是否可用**
 
 #### 2.9.6 导出/导入（Export/Import）
 - AES 加密 JSON 导出
@@ -129,6 +139,7 @@ Provider {
   apiKeyAlias: string
   getKeyUrl: string
   notes?: string
+  hasValidKey?: boolean  // 新增：标记是否配置有效密钥
 }
 
 ModelConfig {
@@ -140,11 +151,14 @@ ModelConfig {
   topP?: number
   maxTokens?: number
   baseUrlOverride?: string
+  teamAssignment?: 'red' | 'blue' | 'purple' | 'all'  // 新增：团队分配标签
 }
 
 Secret {
   alias: string
   valueEncrypted: string
+  isValid?: boolean  // 新增：密钥有效性标记
+  lastValidated?: string  // 新增：最后验证时间
 }
 
 ConnectorCode {
@@ -159,6 +173,15 @@ Settings {
   defaultProviderId?: string
   telemetry: boolean
   timeoutMs: number
+}
+
+ProviderModelsResponse {  // 新增：提供商模型查询响应
+  providerId: string
+  models: Array<{
+    id: string
+    name: string
+    contextWindow?: number
+  }>
 }
 ```
 
@@ -185,12 +208,14 @@ Settings {
     RoleEditor.tsx
     ReplayPanel.tsx
     AdminPanel.tsx
+    ModelQueryDialog.tsx  // 新增：模型查询对话框
   /lib
     agents.ts
     turnEngine.ts
     storage.ts
     secrets.ts
     providers.ts
+    providerApi.ts  // 新增：提供商 API 调用模块
     connectors.ts
     export.ts
     csv.ts
@@ -221,6 +246,8 @@ Settings {
 - 时间戳工具提示
 - 键盘导航支持
 - 所有页面底部帮助文本
+- **模型查询加载状态：查询提供商模型时显示加载动画**
+- **有效密钥视觉标识：使用绿色勾选图标标记已验证的有效密钥**
 
 ## 7. 质量要求
 
@@ -244,6 +271,7 @@ Settings {
 - README.md 包含：
   - 安装步骤：`npm i && npm run dev`
   - 提供商管理说明
+  - **API 密钥验证和模型查询流程说明**
   - 加密机制说明
   - 迁移至 Fastify 后端 + 数据库的计划
   - 真实 API 连接指南
@@ -259,6 +287,9 @@ Settings {
 
 ✅ 通过 `npm run dev` 独立运行
 ✅ 支持管理面板 CRUD 操作（提供商/模型/密钥/连接器）
+✅ **输入 API 密钥后可查询提供商可用模型列表**
+✅ **参与者面板仅显示有效密钥提供商的模型**
+✅ **支持按团队（Red/Blue/Purple）分配和筛选模型**
 ✅ 运行 Gauntlet 轮次（Red→Blue→Purple）并评分
 ✅ 导出 JSON/CSV 功能
 ✅ 支持回放、快照、加密解锁
@@ -278,3 +309,4 @@ Settings {
 - 高级分析功能
 - 多用户协作
 - 云端同步
+- **智能模型推荐：基于任务类型自动推荐最适合的模型组合**

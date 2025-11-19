@@ -48,29 +48,54 @@ Navigate to the **Admin Panel** → **Providers** tab to:
 - All editing happens in a modal dialog for better focus and clarity
 - Get API keys from provider links
 
-### 2. Manage Secrets
+### 2. Add API Keys
 
 In **Admin Panel** → **Secrets** tab:
-- Set a master passphrase (minimum 8 characters)
-- Add encrypted API keys for each provider
-- Keys are stored locally using AES-GCM encryption
+1. Set a **master passphrase** (minimum 8 characters) - this encrypts all your API keys
+2. For each provider you want to use:
+   - Click **Add Key** button
+   - Enter your API key (get it from the provider's website)
+   - Click **Discover Available Models** to automatically fetch available models
+   - Click **Save API Key** to encrypt and store it
+3. Keys are stored locally using AES-GCM encryption
+4. Visual indicators show which providers have valid keys (✓ = has key, ✗ = no key)
 
 ### 3. Configure Models
 
 In **Admin Panel** → **Models** tab:
-- Link models to providers
-- Set temperature, topP, and maxTokens parameters
-- Override base URLs if needed
+1. Click **Add Model** (only available if you have API keys configured)
+2. Select a provider (only shows providers with valid API keys)
+3. Select a model from the discovered models list
+4. Set a display label (e.g., "GPT-4 Turbo")
+5. Configure parameters:
+   - **Temperature**: 0-2 (higher = more creative)
+   - **Top-P**: 0-1 (nucleus sampling)
+   - **Max Tokens**: Maximum response length
+6. Optionally override the base URL
+7. Click **Add Model** to save
 
-### 4. Start a Session
+### 4. Assign Models to Agents
 
-1. Click **Start** in the Session Control panel
-2. The platform will execute a Red→Blue→Purple turn cycle
-3. View messages in the Arena with real-time scores
-4. Monitor metrics in the Metrics Panel
-5. Adjust the seed prompt using the Prompt Injector
+In the **Participants** panel:
+1. Click the **Edit** icon on any agent (Red, Blue, or Purple)
+2. Select a model from the dropdown (only shows models with valid API keys)
+3. View model details (temperature, top-P, max tokens)
+4. Click **Assign Model** to update the agent
+5. Visual indicators show:
+   - ✓ Green checkmark = valid API key
+   - ✗ Red X = no valid API key
+   - ⚠ Yellow warning = no model assigned
 
-### 5. Export Results
+### 5. Start a Session
+
+1. Ensure all three agents (Red, Blue, Purple) have models assigned
+2. Click **Start** in the Session Control panel
+3. The platform will execute a Red→Blue→Purple turn cycle
+4. View messages in the Arena with real-time scores
+5. Monitor metrics in the Metrics Panel
+6. Adjust the seed prompt using the Prompt Injector
+
+### 6. Export Results
 
 Use the **Export** buttons to download:
 - **JSON**: Complete session data with metadata

@@ -127,6 +127,15 @@ function App() {
     toast.success('Prompt updated');
   };
 
+  const handleUpdateAgent = (agentId: string, updates: Partial<Agent>) => {
+    if (!currentSession) return;
+    const updatedAgents = currentSession.agents.map(agent =>
+      agent.id === agentId ? { ...agent, ...updates } : agent
+    );
+    setCurrentSession({ ...currentSession, agents: updatedAgents });
+    toast.success('Agent updated');
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
@@ -147,7 +156,13 @@ function App() {
             />
             {currentSession && (
               <>
-                <Participants agents={currentSession.agents} />
+                <Participants 
+                  agents={currentSession.agents}
+                  models={state.models}
+                  providers={state.providers}
+                  secrets={state.secrets}
+                  onUpdateAgent={handleUpdateAgent}
+                />
                 <MetricsPanel messages={currentSession.messages} />
               </>
             )}
