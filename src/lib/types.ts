@@ -27,6 +27,7 @@ export const ModelConfigSchema = z.object({
   topP: z.number().optional(),
   maxTokens: z.number().optional(),
   baseUrlOverride: z.string().optional(),
+  assignedTeam: z.enum(['red', 'blue', 'purple', 'none']).optional(),
 });
 
 export type ModelConfig = z.infer<typeof ModelConfigSchema>;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Provider, ModelConfig, Secret } from '@/lib/types';
+import type { Provider, ModelConfig, Secret, AgentRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, CheckCircle } from 'lucide-react';
+import { Trash2, Edit, Plus, CheckCircle, Copy } from 'lucide-react';
 import { generateId } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,7 +36,7 @@ export function ModelsTab({ providers, models, secrets, onUpdate }: ModelsTabPro
       setFormData(model);
     } else {
       setEditing('new');
-      setFormData({ temperature: 0.7, topP: 1, maxTokens: 2000 });
+      setFormData({ temperature: 0.7, topP: 1, maxTokens: 2000, assignedTeam: 'none' });
     }
     setDialogOpen(true);
   };
@@ -66,6 +66,7 @@ export function ModelsTab({ providers, models, secrets, onUpdate }: ModelsTabPro
       topP: formData.topP || 1,
       maxTokens: formData.maxTokens || 2000,
       baseUrlOverride: formData.baseUrlOverride,
+      assignedTeam: formData.assignedTeam || 'none',
     };
     onUpdate([...models, newModel]);
     toast({
@@ -151,11 +152,45 @@ export function ModelsTab({ providers, models, secrets, onUpdate }: ModelsTabPro
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge variant="outline">Temp: {model.temperature}</Badge>
-                  <Badge variant="outline">Top-P: {model.topP}</Badge>
-                  <Badge variant="outline">Max Tokens: {model.maxTokens}</Badge>
-                  {!hasKey && <Badge variant="destructive">No API Key</Badge>}
+                <div className="space-y-2">
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="outline">Temp: {model.temperature}</Badge>
+                    <Badge variant="outline">Top-P: {model.topP}</Badge>
+                    <Badge variant="outline">Max Tokens: {model.maxTokens}</Badge>
+                    {model.assignedTeam && model.assignedTeam !== 'none' && (
+                      <Badge 
+                        className={
+                          model.assignedTeam === 'red' ? 'bg-[#7f1d1d]' :
+                          model.assignedTeam === 'blue' ? 'bg-[#113c5a]' :
+                          'bg-[#4b2b58]'
+                        }
+                      >
+                        Team: {model.assignedTeam.toUpperCase()}
+                      </Badge>
+                    )}
+                    {!hasKey && <Badge variant="destructive">No API Key</Badge>}
+                  </div>
+                  {model.model && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <code className="px-2 py-1 bg-muted rounded max-w-[300px] truncate">
+                        {model.model}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => {
+                          navigator.clipboard.writeText(model.model);
+                          toast({
+                            title: 'Copied',
+                            description: 'Model name copied to clipboard',
+                          });
+                        }}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -268,6 +303,27 @@ export function ModelsTab({ providers, models, secrets, onUpdate }: ModelsTabPro
                   onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="assignedTeam">Assign to Team (Optional)</Label>
+              <Select
+                value={formData.assignedTeam || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, assignedTeam: value as 'red' | 'blue' | 'purple' | 'none' })}
+              >
+                <SelectTrigger id="assignedTeam">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="red">🔴 Red (Divergent)</SelectItem>
+                  <SelectItem value="blue">🔵 Blue (Evaluator)</SelectItem>
+                  <SelectItem value="purple">🟣 Purple (Integrator)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Pre-assign this model to a specific team role
+              </p>
             </div>
 
             <div>

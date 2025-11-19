@@ -1,133 +1,152 @@
-# GauntletFuse 多智能体创意探索平台需求文档
+# GauntletFuse Multi-Agent Creative Exploration Platform Requirements Document
 
-## 1. 应用概述
+## 1. Application Overview
 
-### 1.1 应用名称
+### 1.1 Application Name
 GauntletFuse
 
-### 1.2 应用描述
-GauntletFuse 是一个多智能体创意探索平台，允许多个 AI 智能体（Gemini、Mistral、GPT 等）通过结构化的〖Gauntlet〗轮次进行辩论、批判和整合创意。平台采用 Red（发散思维）→ Blue（评估者）→ Purple（整合者）的三阶段循环机制，实时评分、回放和日志记录功能完全在浏览器中运行。
+### 1.2 Application Description
+GauntletFuse is a multi-agent creative exploration platform that enables multiple AI agents (Gemini, Mistral, GPT, etc.) to debate, critique, and integrate ideas through structured 〖Gauntlet〗 rounds. The platform adopts a three-phase循环 mechanism of Red (divergent thinking) → Blue (evaluator) → Purple (integrator), with real-time scoring, replay, and logging capabilities running entirely in the browser.
 
-### 1.3 技术架构
-- 前端框架：Vite + React + TypeScript（单页应用 SPA）
-- 状态管理：React Hooks
-- 类型验证：TypeScript + Zod
-- 未来扩展：可迁移至 Next.js + Fastify + SQLite 全栈架构
+### 1.3 Technical Architecture
+- Frontend Framework: Vite + React + TypeScript (Single Page Application)
+- State Management: React Hooks
+- Type Validation: TypeScript + Zod
+- Future Extension: Migratable to Next.js + Fastify + SQLite full-stack architecture
 
-## 2. 核心功能
+## 2. Core Features
 
-### 2.1 智能体管理
-- 支持多种角色：Human（人类）、Red（发散思维）、Blue（评估者）、Purple（整合者）
-- 智能体配置：包含 id、名称、角色、模型、提供商 ID、温度参数
-- 默认会话配置：Gemini = Red，Mistral = Blue，GPT = Purple
-- 可编辑角色和模型分配
-- **模型过滤机制：参与者面板中仅显示已配置有效 API 密钥的提供商的模型**
-- **按团队分配模型：支持为 Red、Blue、Purple 三个团队分别指定可用模型列表**
+### 2.1 Agent Management
+- Support multiple roles: Human, Red (divergent thinking), Blue (evaluator), Purple (integrator)
+- Agent configuration: includes id, name, role, model, provider ID, temperature parameter
+- Default session configuration: Gemini = Red, Mistral = Blue, GPT = Purple
+- Editable role and model assignment
+- **Model filtering mechanism: Participants panel displays only models from providers with valid configured API keys**
+- **Team-based model assignment: Support specifying available model lists for Red, Blue, Purple teams separately**
 
-### 2.2 轮次引擎（Turn Engine）
-- 顺序执行 Red → Blue → Purple 循环
-- 每个智能体生成消息并计算评分
-- 评分维度：新颖性、可行性、价值影响、安全性、探索指数
-- 支持本地启发式评分和 LLM 评分占位符
+### 2.2 Turn Engine
+- Sequential execution of Red → Blue → Purple cycle
+- Each agent generates messages and calculates scores
+- Scoring dimensions: novelty, feasibility, value impact, safety, exploration index
+- Support local heuristic scoring and LLM scoring placeholder
 
-### 2.3 会话控制（SessionControl）
-- 启动/暂停/重置会话
-- 导出 JSON/CSV 格式数据
-- 快照和恢复功能
-- 会话持久化存储
+### 2.3 Session Control
+- Start/pause/reset session
+- Export JSON/CSV format data
+- Snapshot and restore functionality
+- Session persistence storage
 
-### 2.4 参与者面板（Participants）
-- 显示当前会话参与者
-- 编辑角色和模型分配
-- 实时状态显示
-- **仅显示已配置有效 API 密钥的提供商模型**
-- **支持按团队（Red/Blue/Purple）筛选和分配模型**
+### 2.4 Participants Panel
+- Display current session participants
+- Edit role and model assignment
+- Real-time status display
+- **Display only models from providers with valid configured API keys**
+- **Support filtering and assigning models by team (Red/Blue/Purple)**
+- **NEW: Display team assignment for each model configuration in the table**
 
-### 2.5 竞技场（Arena）
-- 聊天式消息流展示
-- 实时显示评分
-- 消息时间戳工具提示
-- 技术细节展示（API 端点和请求体）
+### 2.5 Arena
+- Chat-style message flow display
+- Real-time score display
+- Message timestamp tooltips
+- Technical details display (API endpoints and request body)
 
-### 2.6 指标面板（MetricsPanel）
-- 滚动平均值计算
-- 数据可视化图表
-- 多维度评分追踪
+### 2.6 Metrics Panel
+- Rolling average calculation
+- Data visualization charts
+- Multi-dimensional score tracking
 
-### 2.7 提示注入器（PromptInjector）
-- 会话中编辑种子提示
-- 动态调整上下文
+### 2.7 Prompt Injector
+- Edit seed prompts during session
+- Dynamic context adjustment
 
-### 2.8 回放面板（ReplayPanel）
-- 回放历史轮次
-- 使用新种子重新运行
+### 2.8 Replay Panel
+- Replay historical rounds
+- Re-run with new seeds
 
-### 2.9 管理面板（AdminPanel）
-包含以下标签页：
+### 2.9 Admin Panel
+Contains the following tabs:
 
-#### 2.9.1 提供商管理（Providers）
-- CRUD 操作支持所有 AI 提供商
-- 预置提供商列表：
-  - OpenAI：https://platform.openai.com/api-keys
-  - Google Gemini：https://aistudio.google.com/app/apikey
-  - Anthropic：https://console.anthropic.com
-  - Mistral：https://console.mistral.ai
-  - Cohere：https://dashboard.cohere.com/api-keys
-  - OpenRouter：https://openrouter.ai/keys
-  - Azure OpenAI：https://portal.azure.com
-  - AWS Bedrock：https://console.aws.amazon.com/bedrock
-  - Alibaba Qwen：https://bailian.console.aliyun.com
-  - Baidu ERNIE：https://console.bce.baidu.com/ai
-  - Tencent Hunyuan：https://cloud.tencent.com/product/hunyuan
-  - Zhipu GLM：https://open.bigmodel.cn
-  - SenseTime SenseNova：https://open.sensetime.com
-  - DeepSeek：https://platform.deepseek.com
-  - Moonshot：https://platform.moonshot.cn
-- 配置字段：名称、基础 URL、类型、API 密钥获取链接、备注
-- **API 密钥验证后模型查询功能：输入 API 密钥后，提供〖查询可用模型〗按钮，调用提供商 API 获取该密钥下所有可用模型列表**
+#### 2.9.1 Provider Management (Providers)
+- CRUD operations support for all AI providers
+- Preset provider list:
+  - OpenAI: https://platform.openai.com/api-keys
+  - Google Gemini: https://aistudio.google.com/app/apikey
+  - Anthropic: https://console.anthropic.com
+  - Mistral: https://console.mistral.ai
+  - Cohere: https://dashboard.cohere.com/api-keys
+  - OpenRouter: https://openrouter.ai/keys
+  - Azure OpenAI: https://portal.azure.com
+  - AWS Bedrock: https://console.aws.amazon.com/bedrock
+  - Alibaba Qwen: https://bailian.console.aliyun.com
+  - Baidu ERNIE: https://console.bce.baidu.com/ai
+  - Tencent Hunyuan: https://cloud.tencent.com/product/hunyuan
+  - Zhipu GLM: https://open.bigmodel.cn
+  - SenseTime SenseNova: https://open.sensetime.com
+  - DeepSeek: https://platform.deepseek.com
+  - Moonshot: https://platform.moonshot.cn
+- Configuration fields: name, base URL, type, API key acquisition link, notes
+- **API key validation and model query: After entering API key, provide 〖Query Available Models〗 button to call provider API and retrieve all available models under that key**
 
-#### 2.9.2 模型管理（Models）
-- 与提供商关联的 CRUD 操作
-- 模型配置：id、providerId、model、label、temperature、topP、maxTokens、baseUrlOverride
-- **动态模型列表：从提供商 API 查询获取的模型可直接添加到模型列表**
-- **模型选择器：支持从查询到的可用模型列表中勾选并批量添加**
-- **团队标签：为每个模型添加可选的团队标签（Red/Blue/Purple/All），用于参与者面板筛选**
+#### 2.9.2 Model Management (Models)
+- CRUD operations associated with providers
+- Model configuration: id, providerId, model, label, temperature, topP, maxTokens, baseUrlOverride
+- **Dynamic model list: Models queried from provider API can be directly added to model list**
+- **Model selector: Support selecting from queried available model list and batch adding**
+- **Team tags: Add optional team tags (Red/Blue/Purple/All) for each model, used for participants panel filtering**
+- **NEW: Add 〖Assign Team〗 field in the Add Model Configuration form**
+- **NEW: Team field should be a dropdown selector with options dynamically loaded from preset team list**
+- **NEW: Display assigned team information in a new column in the model configuration table**
 
-#### 2.9.3 密钥管理（Secrets）
-- AES-GCM 本地加密
-- 密码短语解锁机制
-- 密钥别名管理
-- 不记录密钥日志
-- **密钥有效性标记：显示每个密钥是否已验证有效**
+#### 2.9.3 Secrets Management (Secrets)
+- AES-GCM local encryption
+- Passphrase unlock mechanism
+- Key alias management
+- No key logging
+- **Key validity indicator: Display whether each key has been verified as valid**
+- **NEW: Optimize long API key display in table cells with responsive design**
+- **NEW: Implement text truncation for long keys with 〖Copy〗 button or 〖View Full Content〗 interaction**
+- **NEW: Prevent table cells from being excessively stretched by long content**
 
-#### 2.9.4 连接器管理（Connectors）
-- 创建/编辑自定义连接器代码
-- 支持 Python 和 JavaScript 代码块
-- 模拟调用功能
-- 代码模板示例（Python 和 JS）
+#### 2.9.4 Connector Management (Connectors)
+- Create/edit custom connector code
+- Support Python and JavaScript code blocks
+- Mock call functionality
+- Code template examples (Python and JS)
 
-#### 2.9.5 验证（Validate）
-- 完整性检查
-- 检测缺失密钥
-- 验证无效标识符
-- **API 密钥有效性验证：测试每个提供商的 API 密钥是否可用**
+#### 2.9.5 Validation (Validate)
+- Integrity check
+- Detect missing keys
+- Validate invalid identifiers
+- **API key validity verification: Test whether each provider's API key is available**
 
-#### 2.9.6 导出/导入（Export/Import）
-- AES 加密 JSON 导出
-- 用户提供密码保护
-- 配置导入功能
+#### 2.9.6 Export/Import
+- AES encrypted JSON export
+- User-provided password protection
+- Configuration import functionality
 
-### 2.10 OpenAI 自定义 GPT 向导
-- 自动生成启动文件：
+### 2.10 OpenAI Custom GPT Wizard
+- Auto-generate startup files:
   - gpt-system-instructions.md
-  - actions-openapi.json（模拟 /turn、/score、/export 端点）
+  - actions-openapi.json (mock /turn, /score, /export endpoints)
   - manifest.json
-- 一键复制所有按钮
-- 上传指南文本
+- One-click copy all buttons
+- Upload guide text
 
-## 3. 数据模型
+### 2.11 Data Persistence (NEW)
+- **Browser local storage integration**
+- **Auto-save all model configurations (including model name, API key, assigned team) to local storage upon submission**
+- **Auto-load all saved configuration data from local storage when page refreshes or reopens**
+- **Ensure session data persists across browser sessions**
 
-### 3.1 核心数据结构
+### 2.12 Responsive Layout Optimization (NEW)
+- **Implement responsive design for all components (forms, tables)**
+- **Tables with long content support horizontal scrolling when screen width is insufficient**
+- **Dynamic size and layout adjustment to perfectly adapt to screens from mobile to desktop**
+- **Prevent layout breakage caused by long text content**
+
+## 3. Data Models
+
+### 3.1 Core Data Structures
 ```typescript
 Provider {
   id: string
@@ -139,7 +158,7 @@ Provider {
   apiKeyAlias: string
   getKeyUrl: string
   notes?: string
-  hasValidKey?: boolean  // 新增：标记是否配置有效密钥
+  hasValidKey?: boolean  // Indicates whether valid key is configured
 }
 
 ModelConfig {
@@ -151,14 +170,14 @@ ModelConfig {
   topP?: number
   maxTokens?: number
   baseUrlOverride?: string
-  teamAssignment?: 'red' | 'blue' | 'purple' | 'all'  // 新增：团队分配标签
+  teamAssignment?: 'red' | 'blue' | 'purple' | 'all'  // NEW: Team assignment tag
 }
 
 Secret {
   alias: string
   valueEncrypted: string
-  isValid?: boolean  // 新增：密钥有效性标记
-  lastValidated?: string  // 新增：最后验证时间
+  isValid?: boolean  // Key validity indicator
+  lastValidated?: string  // Last validation time
 }
 
 ConnectorCode {
@@ -175,7 +194,7 @@ Settings {
   timeoutMs: number
 }
 
-ProviderModelsResponse {  // 新增：提供商模型查询响应
+ProviderModelsResponse {
   providerId: string
   models: Array<{
     id: string
@@ -185,17 +204,17 @@ ProviderModelsResponse {  // 新增：提供商模型查询响应
 }
 ```
 
-## 4. 安全机制
+## 4. Security Mechanisms
 
-### 4.1 加密存储
-- SPA 中使用 AES-GCM 密码短语加密
-- 启动时要求输入密码解锁密钥
-- 不进行密钥外传
+### 4.1 Encrypted Storage
+- AES-GCM passphrase encryption in SPA
+- Require password input to unlock keys at startup
+- No external key transmission
 
-### 4.2 迁移标记
-- 所有未来服务器迁移点标记为 `// FutureServer:` 注释
+### 4.2 Migration Markers
+- All future server migration points marked with `// FutureServer:` comments
 
-## 5. 文件结构
+## 5. File Structure
 
 ```
 /src
@@ -208,105 +227,157 @@ ProviderModelsResponse {  // 新增：提供商模型查询响应
     RoleEditor.tsx
     ReplayPanel.tsx
     AdminPanel.tsx
-    ModelQueryDialog.tsx  // 新增：模型查询对话框
+    ModelQueryDialog.tsx  // Model query dialog
+    TeamAssignmentSelector.tsx  // NEW: Team assignment dropdown component
+    ResponsiveTable.tsx  // NEW: Responsive table component with long text handling
   /lib
     agents.ts
     turnEngine.ts
     storage.ts
     secrets.ts
     providers.ts
-    providerApi.ts  // 新增：提供商 API 调用模块
+    providerApi.ts  // Provider API call module
     connectors.ts
     export.ts
     csv.ts
     types.ts
     utils.ts
+    localStorage.ts  // NEW: Browser local storage utility module
   App.tsx
   main.tsx
   index.css
 ```
 
-## 6. 设计风格
+## 6. Design Style
 
-### 6.1 配色方案
-- 深色极简主题
-- 角色颜色编码：
-  - Red（发散思维）：#7f1d1d
-  - Blue（评估者）：#113c5a
-  - Purple（整合者）：#4b2b58
-  - Human（人类）：#2b3a4b
+### 6.1 Color Scheme
+- Dark minimalist theme
+- Role color coding:
+  - Red (divergent thinking): #7f1d1d
+  - Blue (evaluator): #113c5a
+  - Purple (integrator): #4b2b58
+  - Human: #2b3a4b
 
-### 6.2 布局设计
-- 网格布局：参与者 | 竞技场 | 指标 | 管理
-- 卡片式组件设计
-- 流畅过渡动画（可选 Framer Motion）
+### 6.2 Layout Design
+- Grid layout: Participants | Arena | Metrics | Admin
+- Card-style component design
+- Smooth transition animations (optional Framer Motion)
+- **NEW: Fully responsive layout adapting to screen sizes from 320px (mobile) to 1920px+ (desktop)**
+- **NEW: Horizontal scrolling for tables on narrow screens**
 
-### 6.3 交互细节
-- 每条消息显示评分标签
-- 时间戳工具提示
-- 键盘导航支持
-- 所有页面底部帮助文本
-- **模型查询加载状态：查询提供商模型时显示加载动画**
-- **有效密钥视觉标识：使用绿色勾选图标标记已验证的有效密钥**
+### 6.3 Interaction Details
+- Display score tags for each message
+- Timestamp tooltips
+- Keyboard navigation support
+- Help text at bottom of all pages
+- **Model query loading state: Display loading animation when querying provider models**
+- **Valid key visual indicator: Use green checkmark icon to mark verified valid keys**
+- **NEW: Copy button for truncated long text (API keys)**
+- **NEW: Click-to-expand interaction for viewing full content of long text**
 
-## 7. 质量要求
+## 7. Quality Requirements
 
-### 7.1 代码规范
-- 强制类型安全
-- 纯函数设计（I/O 除外）
-- 防御性错误处理
-- 模块代码少于 200 行
-- 严格 TypeScript 类型检查
+### 7.1 Code Standards
+- Enforce type safety
+- Pure function design (except I/O)
+- Defensive error handling
+- Module code less than 200 lines
+- Strict TypeScript type checking
+- **NEW: All code comments, variable names, function names, UI text, and documentation must be in English only**
 
-### 7.2 可维护性
-- 清晰的表现层/逻辑层/数据层分离
-- 完整的类型定义
-- 明确的迁移接缝标记
-- 详细的代码注释
+### 7.2 Maintainability
+- Clear separation of presentation/logic/data layers
+- Complete type definitions
+- Clear migration seam markers
+- Detailed code comments
 
-## 8. 交付物
+## 8. Deliverables
 
-### 8.1 文档
-- 架构概述文档
-- README.md 包含：
-  - 安装步骤：`npm i && npm run dev`
-  - 提供商管理说明
-  - **API 密钥验证和模型查询流程说明**
-  - 加密机制说明
-  - 迁移至 Fastify 后端 + 数据库的计划
-  - 真实 API 连接指南
-- .env.example 文件（包含提供商占位符）
-- 扩展至完整 monorepo 的检查清单
+### 8.1 Documentation
+- Architecture overview document
+- README.md including:
+  - Installation steps: `npm i && npm run dev`
+  - Provider management instructions
+  - **API key validation and model query workflow**
+  - Encryption mechanism explanation
+  - Migration plan to Fastify backend + database
+  - Real API connection guide
+  - **NEW: Browser local storage implementation details**
+  - **NEW: Responsive design implementation guide**
+- .env.example file (with provider placeholders)
+- Checklist for extending to full monorepo
+- **NEW: Complete Deployment Blueprint (Markdown document)**
 
-### 8.2 源代码
-- 所有 TypeScript 源文件
-- 完整注释
-- 总代码量少于 2000 行
+### 8.2 Deployment Blueprint Document (NEW)
+A comprehensive Markdown document serving as the application's deployment blueprint, enabling any AI coding assistant to 1:1 replicate the fully functional application. Must include:
 
-## 9. 验收标准
+#### 8.2.1 Project Overview
+- Brief description of core functionality
+- Key features summary
 
-✅ 通过 `npm run dev` 独立运行
-✅ 支持管理面板 CRUD 操作（提供商/模型/密钥/连接器）
-✅ **输入 API 密钥后可查询提供商可用模型列表**
-✅ **参与者面板仅显示有效密钥提供商的模型**
-✅ **支持按团队（Red/Blue/Purple）分配和筛选模型**
-✅ 运行 Gauntlet 轮次（Red→Blue→Purple）并评分
-✅ 导出 JSON/CSV 功能
-✅ 支持回放、快照、加密解锁
-✅ 生成 OpenAI 自定义 GPT 模板
-✅ 严格 TypeScript、有注释、可维护、少于 2000 行
-✅ 包含迁移路线图
+#### 8.2.2 Technology Stack
+- Explicit list of required technologies (HTML, CSS, JavaScript, React, TypeScript, Vite)
+- Dependencies and versions
 
-## 10. 未来扩展
+#### 8.2.3 Complete Source Code
+- Full code blocks for all necessary HTML structure, CSS styles, and JavaScript logic
+- Organized by file structure
+- Copy-paste ready format
 
-### 10.1 后端迁移
-- 从 SPA 迁移至 Next.js + Fastify + SQLite
-- 无需重写核心逻辑
-- 保持模块化架构
+#### 8.2.4 Key Logic Annotations
+- Detailed comments on critical sections:
+  - Local storage operations
+  - Responsive layout implementation
+  - Team assignment logic
+  - Long text truncation mechanism
+  - API key validation flow
 
-### 10.2 功能增强
-- LLM 评分集成
-- 高级分析功能
-- 多用户协作
-- 云端同步
-- **智能模型推荐：基于任务类型自动推荐最适合的模型组合**
+#### 8.2.5 Deployment Guide
+- Clear step-by-step instructions
+- How to run the application (e.g., open HTML file in modern browser or run `npm run dev`)
+- Environment setup requirements
+- Troubleshooting common issues
+
+#### 8.2.6 Language Requirement
+- **All text, menus, code, and documentation must be in English only**
+
+### 8.3 Source Code
+- All TypeScript source files
+- Complete annotations in English
+- Total code volume less than 2000 lines
+
+## 9. Acceptance Criteria
+
+✅ Run independently via `npm run dev`
+✅ Support Admin Panel CRUD operations (Providers/Models/Secrets/Connectors)
+✅ **Query provider available model list after entering API key**
+✅ **Participants panel displays only models from providers with valid keys**
+✅ **Support team-based (Red/Blue/Purple) model assignment and filtering**
+✅ **NEW: Add 〖Assign Team〗 field in model configuration form with dynamic dropdown**
+✅ **NEW: Display assigned team in model configuration table**
+✅ **NEW: Implement responsive table layout with horizontal scrolling**
+✅ **NEW: Long API keys display with truncation and copy/expand functionality**
+✅ **NEW: All configuration data persists in browser local storage**
+✅ **NEW: Auto-load saved data on page refresh**
+✅ Run Gauntlet rounds (Red→Blue→Purple) with scoring
+✅ Export JSON/CSV functionality
+✅ Support replay, snapshot, encrypted unlock
+✅ Generate OpenAI Custom GPT templates
+✅ Strict TypeScript, annotated, maintainable, less than 2000 lines
+✅ Include migration roadmap
+✅ **NEW: Complete Deployment Blueprint document enabling 1:1 replication**
+✅ **NEW: All text, menus, code, and documentation in English only**
+
+## 10. Future Extensions
+
+### 10.1 Backend Migration
+- Migrate from SPA to Next.js + Fastify + SQLite
+- No need to rewrite core logic
+- Maintain modular architecture
+
+### 10.2 Feature Enhancements
+- LLM scoring integration
+- Advanced analytics
+- Multi-user collaboration
+- Cloud synchronization
+- **Intelligent model recommendation: Auto-recommend optimal model combinations based on task type**

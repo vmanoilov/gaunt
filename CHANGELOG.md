@@ -2,6 +2,42 @@
 
 All notable changes to GauntletFuse will be documented in this file.
 
+## [1.3.0] - 2025-11-19
+
+### Added
+- **Team Assignment Feature**: Models can now be pre-assigned to specific teams
+  - Added `assignedTeam` field to ModelConfig type
+  - Team selection dropdown in Add/Edit Model dialog
+  - Team badges with color coding (Red, Blue, Purple)
+  - Visual indicators on model cards showing team assignment
+
+- **Long Text Handling**: Improved display of long content
+  - Model names truncated with `max-w-[300px]` and ellipsis
+  - Copy button next to truncated text for easy clipboard access
+  - Toast notifications on successful copy
+  - Responsive code blocks with proper styling
+
+- **Complete Deployment Blueprint**: Comprehensive documentation
+  - Full project structure explanation
+  - Complete code reference with examples
+  - Step-by-step installation guide
+  - Responsive design implementation details
+  - Testing and validation procedures
+  - Deployment options (Static, Docker, Dev)
+  - Security considerations
+  - Future migration path
+
+### Changed
+- **Model Cards**: Enhanced with team badges and copy functionality
+- **Type System**: Updated ModelConfigSchema to include assignedTeam
+- **UI/UX**: Improved visual hierarchy with color-coded team badges
+
+### Technical Details
+- Updated `src/lib/types.ts` - Added assignedTeam to ModelConfigSchema
+- Updated `src/components/admin/ModelsTab.tsx` - Team assignment UI
+- Created `DEPLOYMENT_BLUEPRINT.md` - Complete deployment guide
+- All UI text in English as per requirements
+
 ## [1.2.0] - 2025-11-19
 
 ### Added
