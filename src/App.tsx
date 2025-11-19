@@ -1,61 +1,183 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { AdminPanel } from '@/components/admin/AdminPanel';
+import { SessionControl } from '@/components/session/SessionControl';
+import { Arena } from '@/components/session/Arena';
+import { MetricsPanel } from '@/components/session/MetricsPanel';
+import { Participants } from '@/components/session/Participants';
+import { PromptInjector } from '@/components/session/PromptInjector';
+import type { AppState, Session, Agent } from '@/lib/types';
+import { DEFAULT_PROVIDERS } from '@/lib/providers';
+import { loadState, saveState } from '@/lib/storage';
+import { generateId } from '@/lib/utils';
+import { executeTurn, canExecuteTurn } from '@/lib/turnEngine';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
-import routes from './routes';
+const DEFAULT_AGENTS: Agent[] = [
+  {
+    id: 'agent-red',
+    name: 'Gemini Red',
+    role: 'red',
+    modelId: 'gemini-pro',
+    providerId: 'google',
+    temperature: 0.9,
+  },
+  {
+    id: 'agent-blue',
+    name: 'Mistral Blue',
+    role: 'blue',
+    modelId: 'mistral-large',
+    providerId: 'mistral',
+    temperature: 0.5,
+  },
+  {
+    id: 'agent-purple',
+    name: 'GPT Purple',
+    role: 'purple',
+    modelId: 'gpt-4',
+    providerId: 'openai',
+    temperature: 0.7,
+  },
+];
 
-// Uncomment these imports when using miaoda-auth-react for authentication
-// import { AuthProvider, RequireAuth } from 'miaoda-auth-react';
-// import { supabase } from 'supabase-js';
-// import Header from '@/components/common/Header';
+function App() {
+  const [state, setState] = useState<AppState>(() => {
+    const loaded = loadState();
+    if (loaded) return loaded;
+    
+    return {
+      providers: DEFAULT_PROVIDERS,
+      models: [],
+      secrets: [],
+      connectors: [],
+      settings: {
+        telemetry: false,
+        timeoutMs: 30000,
+      },
+      sessions: [],
+    };
+  });
 
-const App: React.FC = () => {
-{/*
-    // USING MIAODA-AUTH-REACT (Uncomment when auth is required):
-    // =========================================================
-    // Replace the current App structure with this when using miaoda-auth-react:
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
 
-    // 1. Wrap everything with AuthProvider (must be inside Router)
-    // 2. Use RequireAuth to protect routes that need authentication
-    // 3. Set whiteList prop for public routes that don't require auth
+  useEffect(() => {
+    saveState(state);
+  }, [state]);
 
-    // Example structure:
-    // <Router>
-    //   <AuthProvider client={supabase}>
-    //     <ScrollToTop />
-    //     <Toaster />
-    //     <RequireAuth whiteList={["/login", "/403", "/404", "/public/*"]}>
-    //       <Header />
-    //       <Routes>
-    //         ... your routes here ...
-    //       </Routes>
-    //     </RequireAuth>
-    //   </AuthProvider>
-    // </Router>
+  const handleStartSession = async () => {
+    if (currentSession?.status === 'running') {
+      toast.info('Session already running');
+      return;
+    }
 
-    // IMPORTANT:
-    // - AuthProvider must be INSIDE Router (it uses useNavigate)
-    // - RequireAuth should wrap Routes, not be inside it
-    // - Add all public paths to the whiteList array
-    // - Remove the custom PrivateRoute component when using RequireAuth
-*/}
+    let session = currentSession;
+    
+    if (!session || session.status === 'idle') {
+      session = {
+        id: generateId(),
+        seedPrompt: 'Explore innovative solutions for sustainable urban transportation',
+        agents: DEFAULT_AGENTS,
+        messages: [],
+        currentTurn: 0,
+        status: 'running',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setCurrentSession(session);
+    } else {
+      session = { ...session, status: 'running' };
+      setCurrentSession(session);
+    }
+
+    if (!canExecuteTurn(session, session.agents)) {
+      toast.error('Missing required agents (Red, Blue, Purple)');
+      return;
+    }
+
+    try {
+      const newMessages = await executeTurn(session, session.agents);
+      const updatedSession = {
+        ...session,
+        messages: [...session.messages, ...newMessages],
+        currentTurn: session.currentTurn + 1,
+        updatedAt: Date.now(),
+      };
+      setCurrentSession(updatedSession);
+      toast.success(`Turn ${updatedSession.currentTurn} completed`);
+    } catch (error) {
+      toast.error('Failed to execute turn');
+      console.error(error);
+    }
+  };
+
+  const handlePauseSession = () => {
+    if (!currentSession) return;
+    setCurrentSession({ ...currentSession, status: 'paused' });
+    toast.info('Session paused');
+  };
+
+  const handleResetSession = () => {
+    setCurrentSession(null);
+    toast.info('Session reset');
+  };
+
+  const handleUpdatePrompt = (prompt: string) => {
+    if (!currentSession) return;
+    setCurrentSession({ ...currentSession, seedPrompt: prompt });
+    toast.success('Prompt updated');
+  };
+
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-grow">
-          <Routes>
-          {routes.map((route, index) => (
-            <Route
-              key={index}
-              path={route.path}
-              element={route.element}
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-[1800px] mx-auto space-y-6">
+        <header className="text-center space-y-2">
+          <h1 className="text-4xl font-bold">GauntletFuse</h1>
+          <p className="text-muted-foreground">
+            Multi-Agent Creative Exploration Platform
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <div className="xl:col-span-1 space-y-6">
+            <SessionControl
+              session={currentSession}
+              onStart={handleStartSession}
+              onPause={handlePauseSession}
+              onReset={handleResetSession}
             />
-          ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+            {currentSession && (
+              <>
+                <Participants agents={currentSession.agents} />
+                <MetricsPanel messages={currentSession.messages} />
+              </>
+            )}
+          </div>
+
+          <div className="xl:col-span-2">
+            <Arena messages={currentSession?.messages || []} />
+          </div>
+
+          <div className="xl:col-span-1 space-y-6">
+            {currentSession && (
+              <PromptInjector
+                seedPrompt={currentSession.seedPrompt}
+                onUpdate={handleUpdatePrompt}
+              />
+            )}
+            <AdminPanel state={state} onUpdateState={setState} />
+          </div>
+        </div>
+
+        <footer className="text-center text-sm text-muted-foreground pt-6">
+          <p>
+            GauntletFuse uses Red→Blue→Purple cycle for creative exploration.
+            Configure providers and models in the Admin Panel.
+          </p>
+        </footer>
       </div>
-    </Router>
+      <Toaster />
+    </div>
   );
-};
+}
 
 export default App;

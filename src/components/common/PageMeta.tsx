@@ -1,4 +1,5 @@
 import { HelmetProvider, Helmet } from "react-helmet-async";
+import { useEffect } from "react";
 
 const PageMeta = ({
   title,
@@ -13,8 +14,12 @@ const PageMeta = ({
   </Helmet>
 );
 
-export const AppWrapper = ({ children }: { children: React.ReactNode }) => (
-  <HelmetProvider>{children}</HelmetProvider>
-);
+export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
+  return <HelmetProvider>{children}</HelmetProvider>;
+};
 
 export default PageMeta;
