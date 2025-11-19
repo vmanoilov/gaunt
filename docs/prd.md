@@ -144,6 +144,13 @@ Contains the following tabs:
 - **Dynamic size and layout adjustment to perfectly adapt to screens from mobile to desktop**
 - **Prevent layout breakage caused by long text content**
 
+### 2.13 Project Archive Download (NEW)
+- **Provide 〖Download Project Archive〗 button in the application interface**
+- **Generate ZIP archive containing all project files and folders**
+- **Archive includes: source code, configuration files, documentation, and all necessary assets**
+- **Trigger browser download automatically when button is clicked**
+- **Archive naming format: gauntletfuse-project-[timestamp].zip**
+
 ## 3. Data Models
 
 ### 3.1 Core Data Structures
@@ -158,7 +165,7 @@ Provider {
   apiKeyAlias: string
   getKeyUrl: string
   notes?: string
-  hasValidKey?: boolean  // Indicates whether valid key is configured
+  hasValidKey?: boolean
 }
 
 ModelConfig {
@@ -170,14 +177,14 @@ ModelConfig {
   topP?: number
   maxTokens?: number
   baseUrlOverride?: string
-  teamAssignment?: 'red' | 'blue' | 'purple' | 'all'  // NEW: Team assignment tag
+  teamAssignment?: 'red' | 'blue' | 'purple' | 'all'
 }
 
 Secret {
   alias: string
   valueEncrypted: string
-  isValid?: boolean  // Key validity indicator
-  lastValidated?: string  // Last validation time
+  isValid?: boolean
+  lastValidated?: string
 }
 
 ConnectorCode {
@@ -227,22 +234,24 @@ ProviderModelsResponse {
     RoleEditor.tsx
     ReplayPanel.tsx
     AdminPanel.tsx
-    ModelQueryDialog.tsx  // Model query dialog
-    TeamAssignmentSelector.tsx  // NEW: Team assignment dropdown component
-    ResponsiveTable.tsx  // NEW: Responsive table component with long text handling
+    ModelQueryDialog.tsx
+    TeamAssignmentSelector.tsx
+    ResponsiveTable.tsx
+    ProjectDownloader.tsx  // NEW: Project archive download component
   /lib
     agents.ts
     turnEngine.ts
     storage.ts
     secrets.ts
     providers.ts
-    providerApi.ts  // Provider API call module
+    providerApi.ts
     connectors.ts
     export.ts
     csv.ts
     types.ts
     utils.ts
-    localStorage.ts  // NEW: Browser local storage utility module
+    localStorage.ts
+    archiveBuilder.ts  // NEW: ZIP archive generation utility
   App.tsx
   main.tsx
   index.css
@@ -274,6 +283,7 @@ ProviderModelsResponse {
 - **Valid key visual indicator: Use green checkmark icon to mark verified valid keys**
 - **NEW: Copy button for truncated long text (API keys)**
 - **NEW: Click-to-expand interaction for viewing full content of long text**
+- **NEW: Download button with loading state during archive generation**
 
 ## 7. Quality Requirements
 
@@ -304,6 +314,7 @@ ProviderModelsResponse {
   - Real API connection guide
   - **NEW: Browser local storage implementation details**
   - **NEW: Responsive design implementation guide**
+  - **NEW: Project archive download functionality guide**
 - .env.example file (with provider placeholders)
 - Checklist for extending to full monorepo
 - **NEW: Complete Deployment Blueprint (Markdown document)**
@@ -331,6 +342,7 @@ A comprehensive Markdown document serving as the application's deployment bluepr
   - Team assignment logic
   - Long text truncation mechanism
   - API key validation flow
+  - **NEW: ZIP archive generation logic**
 
 #### 8.2.5 Deployment Guide
 - Clear step-by-step instructions
@@ -346,6 +358,12 @@ A comprehensive Markdown document serving as the application's deployment bluepr
 - Complete annotations in English
 - Total code volume less than 2000 lines
 
+### 8.4 Downloadable Project Archive (NEW)
+- **ZIP file containing complete project structure**
+- **Includes all source code, configuration files, and documentation**
+- **Ready for immediate deployment after extraction**
+- **Generated via in-app download button or build script**
+
 ## 9. Acceptance Criteria
 
 ✅ Run independently via `npm run dev`
@@ -359,6 +377,7 @@ A comprehensive Markdown document serving as the application's deployment bluepr
 ✅ **NEW: Long API keys display with truncation and copy/expand functionality**
 ✅ **NEW: All configuration data persists in browser local storage**
 ✅ **NEW: Auto-load saved data on page refresh**
+✅ **NEW: Provide 〖Download Project Archive〗 button generating complete ZIP file**
 ✅ Run Gauntlet rounds (Red→Blue→Purple) with scoring
 ✅ Export JSON/CSV functionality
 ✅ Support replay, snapshot, encrypted unlock
@@ -381,3 +400,4 @@ A comprehensive Markdown document serving as the application's deployment bluepr
 - Multi-user collaboration
 - Cloud synchronization
 - **Intelligent model recommendation: Auto-recommend optimal model combinations based on task type**
+- **Cloud-based project archive storage and sharing**
