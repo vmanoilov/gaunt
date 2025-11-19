@@ -42,7 +42,10 @@ The application will start in development mode. Open your browser to view the pl
 
 Navigate to the **Admin Panel** → **Providers** tab to:
 - View pre-configured AI providers (OpenAI, Gemini, Mistral, etc.)
-- Add custom providers with API endpoints
+- Click **Add Provider** to create a new provider (opens in a dialog)
+- Click **Edit** icon on any provider to modify its configuration (opens in a dialog)
+- Click **Delete** icon to remove a provider
+- All editing happens in a modal dialog for better focus and clarity
 - Get API keys from provider links
 
 ### 2. Manage Secrets
