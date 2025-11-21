@@ -99,17 +99,6 @@ export const DEFAULT_PROVIDERS: Provider[] = [
     notes: 'Alibaba Qwen models',
   },
   {
-    id: 'ernie',
-    name: 'Baidu ERNIE',
-    slug: 'ernie',
-    type: 'direct',
-    baseUrl: 'https://aip.baidubce.com/rpc/2.0',
-    models: ['ernie-bot', 'ernie-bot-turbo'],
-    apiKeyAlias: 'ERNIE_API_KEY',
-    getKeyUrl: 'https://console.bce.baidu.com/ai',
-    notes: 'Baidu ERNIE models',
-  },
-  {
     id: 'hunyuan',
     name: 'Tencent Hunyuan',
     slug: 'hunyuan',

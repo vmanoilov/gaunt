@@ -6,7 +6,7 @@
 GauntletFuse
 
 ### 1.2 Application Description
-GauntletFuse is a multi-agent creative exploration platform that enables multiple AI agents (Gemini, Mistral, GPT, etc.) to debate, critique, and integrate ideas through structured 〖Gauntlet〗 rounds. The platform adopts a three-phase循环 mechanism of Red (divergent thinking) → Blue (evaluator) → Purple (integrator), with real-time scoring, replay, and logging capabilities running entirely in the browser.
+GauntletFuse is a multi-agent creative exploration platform that enables multiple AI agents (Gemini, Mistral, GPT, etc.) to debate, critique, and integrate ideas through structured 〖Gauntlet〗 rounds. The platform adopts a three-phase cycle mechanism of Red (divergent thinking) → Blue (evaluator) → Purple (integrator), with real-time scoring, replay, and logging capabilities running entirely in the browser.
 
 ### 1.3 Technical Architecture
 - Frontend Framework: Vite + React + TypeScript (Single Page Application)
@@ -78,7 +78,6 @@ Contains the following tabs:
   - Azure OpenAI: https://portal.azure.com
   - AWS Bedrock: https://console.aws.amazon.com/bedrock
   - Alibaba Qwen: https://bailian.console.aliyun.com
-  - Baidu ERNIE: https://console.bce.baidu.com/ai
   - Tencent Hunyuan: https://cloud.tencent.com/product/hunyuan
   - Zhipu GLM: https://open.bigmodel.cn
   - SenseTime SenseNova: https://open.sensetime.com
