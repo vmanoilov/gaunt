@@ -2,9 +2,15 @@ import type { Agent, Message, Session } from './types';
 import { generateId } from './utils';
 import { calculateHeuristicScore } from './scoring';
 
+/**
+ * Execute a complete turn cycle with all agents.
+ * Each agent sees the full conversation history including messages from the current turn.
+ * Messages appear immediately as they're generated.
+ */
 export async function executeTurn(
   session: Session,
-  agents: Agent[]
+  agents: Agent[],
+  onMessageGenerated?: (message: Message) => void
 ): Promise<Message[]> {
   const newMessages: Message[] = [];
   const roleOrder: Array<'red' | 'blue' | 'purple'> = ['red', 'blue', 'purple'];
@@ -13,20 +19,35 @@ export async function executeTurn(
     const agent = agents.find(a => a.role === role);
     if (!agent) continue;
     
+    // Pass all messages so far (including current turn) for full context
     const message = await generateAgentMessage(agent, session, newMessages);
     newMessages.push(message);
+    
+    // Immediately notify caller of new message (for real-time display)
+    if (onMessageGenerated) {
+      onMessageGenerated(message);
+    }
   }
   
   return newMessages;
 }
 
+/**
+ * Generate a single agent message with full context awareness.
+ * The agent sees:
+ * - The seed prompt
+ * - All previous messages from the session
+ * - All messages from the current turn so far
+ */
 async function generateAgentMessage(
   agent: Agent,
   session: Session,
   currentTurnMessages: Message[]
 ): Promise<Message> {
+  // Full conversation history: previous turns + current turn
   const allMessages = [...session.messages, ...currentTurnMessages];
   
+  // Generate response with context
   const content = generateMockResponse(agent, session.seedPrompt, allMessages);
   
   const message: Message = {
@@ -39,11 +60,20 @@ async function generateAgentMessage(
     requestBody: agent.modelId ? `Model: ${agent.modelId}` : undefined,
   };
   
+  // Calculate score based on full context
   message.score = calculateHeuristicScore(message, allMessages);
   
   return message;
 }
 
+/**
+ * Generate mock responses that reflect the new color semantics:
+ * - RED = Attacker / challenger / adversarial mind
+ * - BLUE = Defender / stabilizer / constraints
+ * - PURPLE = Integrator / mediator / sanity
+ * 
+ * Each response builds on previous messages for context awareness.
+ */
 function generateMockResponse(
   agent: Agent,
   seedPrompt: string,
@@ -51,22 +81,22 @@ function generateMockResponse(
 ): string {
   const responses = {
     red: [
-      `Building on the seed prompt "${seedPrompt}", I propose we explore unconventional approaches that challenge traditional assumptions. What if we completely reimagine the problem space?`,
-      `Let's diverge from conventional thinking. Here are three radical ideas: 1) Invert the problem entirely, 2) Apply principles from an unrelated domain, 3) Remove the most obvious constraint.`,
-      `I'm thinking outside the box here. What if we combined elements that typically don't go together? This could lead to breakthrough innovations.`,
-      `Let me push the boundaries further. Consider this: what would happen if we scaled this idea 10x or reduced it to 1/10th? The extremes often reveal hidden opportunities.`,
+      `Challenging the seed prompt "${seedPrompt}": What if we completely invert the assumptions? Let's attack the conventional approach and explore radical alternatives that break the rules.`,
+      `I'm pushing back on the established thinking here. The current direction is too safe. Let me propose three aggressive alternatives that challenge the status quo: 1) Eliminate the primary constraint, 2) Reverse the problem entirely, 3) Apply chaos theory to force innovation.`,
+      `Attacking from a different angle: What if everything we've discussed is solving the wrong problem? Let me challenge the fundamental premise and propose a disruptive counter-narrative.`,
+      `Time to be adversarial. The ideas so far are incremental. I'm going to challenge every assumption and push for breakthrough thinking that makes people uncomfortable. Here's why the conventional wisdom is wrong...`,
     ],
     blue: [
-      `Evaluating the Red agent's proposal: While creative, we need to consider practical constraints. The feasibility score is moderate due to resource requirements and timeline considerations.`,
-      `Critical analysis: The idea has merit but faces three key challenges: 1) Technical complexity, 2) Market readiness, 3) Regulatory considerations. Let's address these systematically.`,
-      `From an evaluator's perspective, this approach scores well on novelty (85/100) but needs refinement on implementation details. Here's what needs work...`,
-      `Assessing risks and benefits: The potential value impact is significant, but we must weigh it against safety concerns and feasibility constraints. My recommendation is to proceed with modifications.`,
+      `Defending against the Red agent's aggressive proposals: While provocative, we need to consider practical constraints. Here are the critical safeguards we must maintain: 1) Regulatory compliance, 2) Resource limitations, 3) Risk mitigation. Let's stabilize this approach.`,
+      `Holding the line on feasibility. The Red agent's ideas are interesting but dangerous without proper constraints. I'm establishing defensive boundaries: technical feasibility, budget reality, timeline constraints, and safety requirements.`,
+      `Defending the established framework: Not all disruption is valuable. Let me outline why certain constraints exist and why we should respect them. Here's a measured, defensive analysis of what's actually achievable.`,
+      `Stabilizing the conversation: The Red agent is pushing too hard into risky territory. Let me defend the practical approach with evidence-based constraints and realistic boundaries. Here's what we can actually defend and deliver.`,
     ],
     purple: [
-      `Synthesizing the divergent and evaluative perspectives: I propose a balanced approach that preserves the innovative core while addressing practical concerns. Here's the integrated solution...`,
-      `Bringing together Red's creativity and Blue's pragmatism, I suggest we: 1) Adopt the novel framework, 2) Implement Blue's risk mitigation strategies, 3) Phase the rollout to manage complexity.`,
-      `The optimal path forward combines elements from both perspectives. We can achieve the innovative vision by breaking it into achievable milestones with built-in validation checkpoints.`,
-      `Integration complete: By merging the bold vision with practical constraints, we arrive at a solution that's both groundbreaking and executable. Here's the unified strategy...`,
+      `Integrating the attack and defense perspectives: Red challenges us to think bigger, Blue keeps us grounded. Here's a balanced synthesis that preserves innovation while respecting constraints. The middle path forward is...`,
+      `Mediating between aggressive innovation and defensive pragmatism: Both perspectives have merit. Let me propose an integrated solution that captures Red's boldness within Blue's safety framework. Here's the sanity check...`,
+      `Finding the integration point: Red's challenges reveal opportunities, Blue's defenses reveal necessities. The synthesized approach combines breakthrough thinking with practical execution. Here's the balanced strategy...`,
+      `Bringing sanity to the debate: We don't need to choose between disruption and stability. Let me integrate both viewpoints into a coherent, executable plan that satisfies both the attacker's ambition and the defender's caution.`,
     ],
   };
   
@@ -75,11 +105,41 @@ function generateMockResponse(
     return `As a ${agent.role} agent, I'm processing the information and formulating a response based on the seed prompt: "${seedPrompt}"`;
   }
   
-  const index = previousMessages.filter(m => m.role === agent.role).length % roleResponses.length;
-  return roleResponses[index];
+  // Build on previous context
+  const previousRoleMessages = previousMessages.filter(m => m.role === agent.role);
+  const otherMessages = previousMessages.filter(m => m.role !== agent.role && m.role !== 'human');
+  
+  let contextPrefix = '';
+  if (otherMessages.length > 0) {
+    const lastOther = otherMessages[otherMessages.length - 1];
+    contextPrefix = `Building on ${lastOther.role}'s point: `;
+  }
+  
+  const index = previousRoleMessages.length % roleResponses.length;
+  return contextPrefix + roleResponses[index];
 }
 
+/**
+ * Check if a turn can be executed (all required agents present)
+ */
 export function canExecuteTurn(session: Session, agents: Agent[]): boolean {
   const requiredRoles: Array<'red' | 'blue' | 'purple'> = ['red', 'blue', 'purple'];
   return requiredRoles.every(role => agents.some(a => a.role === role));
+}
+
+/**
+ * Execute a single agent's turn (for manual mode)
+ */
+export async function executeAgentTurn(
+  agent: Agent,
+  session: Session,
+  onMessageGenerated?: (message: Message) => void
+): Promise<Message> {
+  const message = await generateAgentMessage(agent, session, []);
+  
+  if (onMessageGenerated) {
+    onMessageGenerated(message);
+  }
+  
+  return message;
 }

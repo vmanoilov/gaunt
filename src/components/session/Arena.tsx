@@ -18,8 +18,8 @@ const roleColors = {
 
 const roleLabels = {
   human: 'Human',
-  red: 'Red (Divergent)',
-  blue: 'Blue (Evaluator)',
+  red: 'Red (Attacker)',
+  blue: 'Blue (Defender)',
   purple: 'Purple (Integrator)',
 };
 

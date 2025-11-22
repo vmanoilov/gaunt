@@ -1,17 +1,26 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, RotateCcw, Download } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Download } from 'lucide-react';
 import type { Session } from '@/lib/types';
 import { exportSessionAsJSON, exportSessionAsCSV, downloadFile } from '@/lib/export';
 
 interface SessionControlProps {
   session: Session | null;
+  isRunning?: boolean;
   onStart: () => void;
   onPause: () => void;
+  onStop?: () => void;
   onReset: () => void;
 }
 
-export function SessionControl({ session, onStart, onPause, onReset }: SessionControlProps) {
+export function SessionControl({ 
+  session, 
+  isRunning = false,
+  onStart, 
+  onPause, 
+  onStop,
+  onReset 
+}: SessionControlProps) {
   const handleExportJSON = () => {
     if (!session) return;
     const json = exportSessionAsJSON(session);
@@ -31,10 +40,10 @@ export function SessionControl({ session, onStart, onPause, onReset }: SessionCo
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          {!session || session.status === 'idle' || session.status === 'paused' ? (
+          {!isRunning ? (
             <Button onClick={onStart} className="flex-1">
               <Play className="w-4 h-4 mr-2" />
-              Start
+              Run
             </Button>
           ) : (
             <Button onClick={onPause} variant="secondary" className="flex-1">
@@ -42,18 +51,27 @@ export function SessionControl({ session, onStart, onPause, onReset }: SessionCo
               Pause
             </Button>
           )}
-          <Button onClick={onReset} variant="outline">
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Reset
-          </Button>
+          {onStop && (
+            <Button onClick={onStop} variant="destructive" className="flex-1">
+              <Square className="w-4 h-4 mr-2" />
+              Stop
+            </Button>
+          )}
         </div>
+
+        <Button onClick={onReset} variant="outline" className="w-full">
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset
+        </Button>
 
         {session && (
           <>
             <div className="text-sm space-y-1">
               <div>
                 <span className="font-medium">Status:</span>{' '}
-                <span className="capitalize">{session.status}</span>
+                <span className="capitalize">
+                  {isRunning ? 'running' : session.status}
+                </span>
               </div>
               <div>
                 <span className="font-medium">Turn:</span> {session.currentTurn}

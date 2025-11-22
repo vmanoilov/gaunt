@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SessionControl } from '@/components/session/SessionControl';
 import { Arena } from '@/components/session/Arena';
 import { MetricsPanel } from '@/components/session/MetricsPanel';
 import { Participants } from '@/components/session/Participants';
 import { PromptInjector } from '@/components/session/PromptInjector';
-import type { AppState, Session, Agent } from '@/lib/types';
+import type { AppState, Session, Agent, Message } from '@/lib/types';
 import { loadState } from '@/lib/storage';
 import { generateId } from '@/lib/utils';
 import { executeTurn, canExecuteTurn } from '@/lib/turnEngine';
@@ -37,6 +37,8 @@ const DEFAULT_AGENTS: Agent[] = [
 export default function ArenaPage() {
   const [state, setState] = useState<AppState | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [isAutoRunning, setIsAutoRunning] = useState(false);
+  const autoRunRef = useRef(false);
 
   useEffect(() => {
     const loaded = loadState();
@@ -45,8 +47,73 @@ export default function ArenaPage() {
     }
   }, []);
 
-  const handleStartSession = async () => {
-    if (currentSession?.status === 'running') {
+  // Auto-run effect: continuously execute turns while running
+  useEffect(() => {
+    autoRunRef.current = isAutoRunning;
+    
+    if (isAutoRunning && currentSession) {
+      executeTurnCycle();
+    }
+  }, [isAutoRunning]);
+
+  const executeTurnCycle = async () => {
+    if (!currentSession || !autoRunRef.current) return;
+
+    if (!canExecuteTurn(currentSession, currentSession.agents)) {
+      toast.error('Missing required agents (Red, Blue, Purple)');
+      setIsAutoRunning(false);
+      return;
+    }
+
+    try {
+      // Execute turn with immediate message visibility
+      const newMessages: Message[] = [];
+      
+      await executeTurn(
+        currentSession,
+        currentSession.agents,
+        (message) => {
+          // Immediately add message to session as it's generated
+          newMessages.push(message);
+          setCurrentSession(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: [...prev.messages, message],
+              updatedAt: Date.now(),
+            };
+          });
+        }
+      );
+
+      // Update turn counter after all messages
+      setCurrentSession(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          currentTurn: prev.currentTurn + 1,
+          updatedAt: Date.now(),
+        };
+      });
+
+      // Continue to next turn if still running
+      if (autoRunRef.current) {
+        // Small delay between turns for readability
+        setTimeout(() => {
+          if (autoRunRef.current) {
+            executeTurnCycle();
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      toast.error('Failed to execute turn');
+      console.error(error);
+      setIsAutoRunning(false);
+    }
+  };
+
+  const handleStartSession = () => {
+    if (isAutoRunning) {
       toast.info('Session already running');
       return;
     }
@@ -70,34 +137,27 @@ export default function ArenaPage() {
       setCurrentSession(session);
     }
 
-    if (!canExecuteTurn(session, session.agents)) {
-      toast.error('Missing required agents (Red, Blue, Purple)');
-      return;
-    }
-
-    try {
-      const newMessages = await executeTurn(session, session.agents);
-      const updatedSession = {
-        ...session,
-        messages: [...session.messages, ...newMessages],
-        currentTurn: session.currentTurn + 1,
-        updatedAt: Date.now(),
-      };
-      setCurrentSession(updatedSession);
-      toast.success(`Turn ${updatedSession.currentTurn} completed`);
-    } catch (error) {
-      toast.error('Failed to execute turn');
-      console.error(error);
-    }
+    setIsAutoRunning(true);
+    toast.success('Session started - running automatically');
   };
 
   const handlePauseSession = () => {
     if (!currentSession) return;
+    setIsAutoRunning(false);
     setCurrentSession({ ...currentSession, status: 'paused' });
     toast.info('Session paused');
   };
 
+  const handleStopSession = () => {
+    setIsAutoRunning(false);
+    if (currentSession) {
+      setCurrentSession({ ...currentSession, status: 'completed' });
+    }
+    toast.info('Session stopped');
+  };
+
   const handleResetSession = () => {
+    setIsAutoRunning(false);
     setCurrentSession(null);
     toast.info('Session reset');
   };
@@ -114,7 +174,25 @@ export default function ArenaPage() {
       agent.id === agentId ? { ...agent, ...updates } : agent
     );
     setCurrentSession({ ...currentSession, agents: updatedAgents });
-    toast.success('Agent updated');
+    toast.success('Agent updated - hot-swapped successfully');
+  };
+
+  const handleAddAgent = (agent: Agent) => {
+    if (!currentSession) return;
+    setCurrentSession({
+      ...currentSession,
+      agents: [...currentSession.agents, agent],
+    });
+    toast.success('Agent added to session');
+  };
+
+  const handleRemoveAgent = (agentId: string) => {
+    if (!currentSession) return;
+    setCurrentSession({
+      ...currentSession,
+      agents: currentSession.agents.filter(a => a.id !== agentId),
+    });
+    toast.success('Agent removed from session');
   };
 
   return (
@@ -139,8 +217,10 @@ export default function ArenaPage() {
           <div className="xl:col-span-1 space-y-6">
             <SessionControl
               session={currentSession}
+              isRunning={isAutoRunning}
               onStart={handleStartSession}
               onPause={handlePauseSession}
+              onStop={handleStopSession}
               onReset={handleResetSession}
             />
             {currentSession && state && (
@@ -151,6 +231,8 @@ export default function ArenaPage() {
                   providers={state.providers}
                   secrets={state.secrets}
                   onUpdateAgent={handleUpdateAgent}
+                  onAddAgent={handleAddAgent}
+                  onRemoveAgent={handleRemoveAgent}
                 />
                 <MetricsPanel messages={currentSession.messages} />
               </>
