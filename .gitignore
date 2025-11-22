@@ -19,7 +19,10 @@ package-lock.json
 !.vscode/extensions.json
 .idea
 .DS_Store
+# Ignore all markdown files except README.md and CHANGES.md
 *.md
+!README.md
+!CHANGES.md
 *.suo
 *.ntvs*
 *.njsproj
