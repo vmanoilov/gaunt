@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Edit, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, CheckCircle, XCircle, Play } from 'lucide-react';
 import type { Agent, ModelConfig, Provider, Secret } from '@/lib/types';
 
 interface ParticipantsProps {
@@ -14,6 +14,8 @@ interface ParticipantsProps {
   providers: Provider[];
   secrets: Secret[];
   onUpdateAgent: (agentId: string, updates: Partial<Agent>) => void;
+  onManualExecute?: (agentId: string) => void;
+  isRunning?: boolean;
 }
 
 const roleColors = {
@@ -30,7 +32,7 @@ const roleLabels = {
   purple: 'Purple (Integrator)',
 };
 
-export function Participants({ agents, models, providers, secrets, onUpdateAgent }: ParticipantsProps) {
+export function Participants({ agents, models, providers, secrets, onUpdateAgent, onManualExecute, isRunning = false }: ParticipantsProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('');
@@ -95,6 +97,16 @@ export function Participants({ agents, models, providers, secrets, onUpdateAgent
                       <Badge className={roleColors[agent.role]}>
                         {roleLabels[agent.role]}
                       </Badge>
+                      {onManualExecute && !isRunning && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onManualExecute(agent.id)}
+                          title={`Execute ${agent.name} manually`}
+                        >
+                          <Play className="w-3 h-3" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

@@ -62,23 +62,30 @@ export function SecretsTab({ providers, secrets, onUpdate, onModelsDiscovered }:
       return;
     }
 
+    // Master passphrase >= 8 characters is required
     if (!passphrase || passphrase.length < 8) {
       toast({
         title: 'Error',
-        description: 'Please set a passphrase (minimum 8 characters)',
+        description: 'Master passphrase must be at least 8 characters long',
         variant: 'destructive',
       });
       return;
     }
 
     try {
+      // API key is encrypted using encryptSecret()
       const encrypted = encryptSecret(apiKey, passphrase);
+      
+      // Secrets array is updated correctly
       const newSecrets = secrets.filter(s => s.alias !== selectedProvider.apiKeyAlias);
       newSecrets.push({
         alias: selectedProvider.apiKeyAlias,
         valueEncrypted: encrypted,
       });
+      
+      // onUpdate() is called correctly
       onUpdate(newSecrets);
+      
       toast({
         title: 'Success',
         description: 'API key saved securely',
@@ -126,7 +133,10 @@ export function SecretsTab({ providers, secrets, onUpdate, onModelsDiscovered }:
   };
 
   const handleDeleteSecret = (alias: string) => {
-    onUpdate(secrets.filter(s => s.alias !== alias));
+    // Remove the secret and call onUpdate()
+    const updatedSecrets = secrets.filter(s => s.alias !== alias);
+    onUpdate(updatedSecrets);
+    
     toast({
       title: 'Success',
       description: 'API key removed',

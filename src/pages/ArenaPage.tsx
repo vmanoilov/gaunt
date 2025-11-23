@@ -7,7 +7,17 @@ import { PromptInjector } from '@/components/session/PromptInjector';
 import type { AppState, Session, Agent, Message } from '@/lib/types';
 import { loadState } from '@/lib/storage';
 import { generateId } from '@/lib/utils';
-import { executeTurn, canExecuteTurn } from '@/lib/turnEngine';
+import {
+  executeTurn,
+  canExecuteTurn,
+  initializeTurnState,
+  skipCurrentAgent,
+  stopTurnExecution,
+  pauseTurnExecution,
+  getNextParticipant,
+  executeAgentTurn,
+  type TurnState
+} from '@/lib/turnEngine';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Settings } from 'lucide-react';
@@ -38,6 +48,7 @@ export default function ArenaPage() {
   const [state, setState] = useState<AppState | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [isAutoRunning, setIsAutoRunning] = useState(false);
+  const [turnState, setTurnState] = useState<TurnState>(initializeTurnState());
   const autoRunRef = useRef(false);
 
   useEffect(() => {
@@ -66,15 +77,16 @@ export default function ArenaPage() {
     }
 
     try {
-      // Execute turn with immediate message visibility
-      const newMessages: Message[] = [];
+      // Execute turn with sequential execution and immediate message visibility
+      const newTurnState = { ...turnState };
       
       await executeTurn(
         currentSession,
         currentSession.agents,
+        newTurnState,
+        state!,
         (message) => {
           // Immediately add message to session as it's generated
-          newMessages.push(message);
           setCurrentSession(prev => {
             if (!prev) return prev;
             return {
@@ -85,6 +97,9 @@ export default function ArenaPage() {
           });
         }
       );
+
+      // Update turn state
+      setTurnState(newTurnState);
 
       // Update turn counter after all messages
       setCurrentSession(prev => {
@@ -97,7 +112,7 @@ export default function ArenaPage() {
       });
 
       // Continue to next turn if still running
-      if (autoRunRef.current) {
+      if (autoRunRef.current && !newTurnState.isPaused) {
         // Small delay between turns for readability
         setTimeout(() => {
           if (autoRunRef.current) {
@@ -110,6 +125,55 @@ export default function ArenaPage() {
       console.error(error);
       setIsAutoRunning(false);
     }
+  };
+
+  const handleManualAgentExecution = async (agentId: string) => {
+    if (!currentSession) return;
+    
+    const agent = currentSession.agents.find(a => a.id === agentId);
+    if (!agent) {
+      toast.error('Agent not found');
+      return;
+    }
+
+    try {
+      await executeAgentTurn(
+        agent,
+        currentSession,
+        state!,
+        (message) => {
+          // Immediately add message to session as it's generated
+          setCurrentSession(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              messages: [...prev.messages, message],
+              updatedAt: Date.now(),
+            };
+          });
+        }
+      );
+      
+      toast.success(`Executed ${agent.name} turn`);
+    } catch (error) {
+      toast.error(`Failed to execute ${agent.name} turn`);
+      console.error(error);
+    }
+  };
+
+  const handleSkipCurrentAgent = () => {
+    const newTurnState = { ...turnState };
+    skipCurrentAgent(newTurnState);
+    setTurnState(newTurnState);
+    toast.info('Skipping current agent');
+  };
+
+  const handleStopExecution = () => {
+    const newTurnState = { ...turnState };
+    stopTurnExecution(newTurnState);
+    setTurnState(newTurnState);
+    setIsAutoRunning(false);
+    toast.info('Turn execution stopped');
   };
 
   const handleStartSession = () => {
@@ -222,17 +286,19 @@ export default function ArenaPage() {
               onPause={handlePauseSession}
               onStop={handleStopSession}
               onReset={handleResetSession}
+              onSkipCurrent={handleSkipCurrentAgent}
+              onStopExecution={handleStopExecution}
             />
             {currentSession && state && (
               <>
-                <Participants 
+                <Participants
                   agents={currentSession.agents}
                   models={state.models}
                   providers={state.providers}
                   secrets={state.secrets}
                   onUpdateAgent={handleUpdateAgent}
-                  onAddAgent={handleAddAgent}
-                  onRemoveAgent={handleRemoveAgent}
+                  onManualExecute={handleManualAgentExecution}
+                  isRunning={isAutoRunning}
                 />
                 <MetricsPanel messages={currentSession.messages} />
               </>

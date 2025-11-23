@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Square, RotateCcw, Download } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Download, SkipForward, StopCircle } from 'lucide-react';
 import type { Session } from '@/lib/types';
 import { exportSessionAsJSON, exportSessionAsCSV, downloadFile } from '@/lib/export';
 
@@ -11,15 +11,19 @@ interface SessionControlProps {
   onPause: () => void;
   onStop?: () => void;
   onReset: () => void;
+  onSkipCurrent?: () => void;
+  onStopExecution?: () => void;
 }
 
-export function SessionControl({ 
-  session, 
+export function SessionControl({
+  session,
   isRunning = false,
-  onStart, 
-  onPause, 
+  onStart,
+  onPause,
   onStop,
-  onReset 
+  onReset,
+  onSkipCurrent,
+  onStopExecution
 }: SessionControlProps) {
   const handleExportJSON = () => {
     if (!session) return;
@@ -63,6 +67,23 @@ export function SessionControl({
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
+
+        {isRunning && (onSkipCurrent || onStopExecution) && (
+          <div className="flex gap-2">
+            {onSkipCurrent && (
+              <Button onClick={onSkipCurrent} variant="outline" className="flex-1">
+                <SkipForward className="w-4 h-4 mr-2" />
+                Skip Current
+              </Button>
+            )}
+            {onStopExecution && (
+              <Button onClick={onStopExecution} variant="destructive" className="flex-1">
+                <StopCircle className="w-4 h-4 mr-2" />
+                Stop Execution
+              </Button>
+            )}
+          </div>
+        )}
 
         {session && (
           <>
