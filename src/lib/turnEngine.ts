@@ -1,7 +1,7 @@
-import type { Agent, Message, Session, AppState } from './types';
-import { generateId } from './utils';
-import { calculateHeuristicScore } from './scoring';
 import { callModel } from './connectors';
+import { calculateHeuristicScore } from './scoring';
+import type { Agent, AppState, Message, Session } from './types';
+import { generateId } from './utils';
 
 // Turn execution state
 export interface TurnState {
@@ -252,7 +252,8 @@ function generateMockResponse(
 /**
  * Check if a turn can be executed (all required agents present)
  */
-export function canExecuteTurn(session: Session, agents: Agent[]): boolean {
+export function canExecuteTurn(session: Session): boolean {
+  const agents = session.agents;
   const requiredRoles: Array<'red' | 'blue' | 'purple'> = ['red', 'blue', 'purple'];
   return requiredRoles.every(role => agents.some(a => a.role === role));
 }

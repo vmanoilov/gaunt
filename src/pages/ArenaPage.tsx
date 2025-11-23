@@ -1,27 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { SessionControl } from '@/components/session/SessionControl';
+import { Settings } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Arena } from '@/components/session/Arena';
 import { MetricsPanel } from '@/components/session/MetricsPanel';
 import { Participants } from '@/components/session/Participants';
 import { PromptInjector } from '@/components/session/PromptInjector';
-import type { AppState, Session, Agent, Message } from '@/lib/types';
+import { SessionControl } from '@/components/session/SessionControl';
+import { Button } from '@/components/ui/button';
 import { loadState } from '@/lib/storage';
-import { generateId } from '@/lib/utils';
 import {
-  executeTurn,
   canExecuteTurn,
+  executeAgentTurn,
+  executeTurn,
   initializeTurnState,
+  pauseTurnExecution,
   skipCurrentAgent,
   stopTurnExecution,
-  pauseTurnExecution,
-  getNextParticipant,
-  executeAgentTurn,
   type TurnState
 } from '@/lib/turnEngine';
-import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import type { Agent, AppState, Message, Session } from '@/lib/types';
+import { generateId } from '@/lib/utils';
 
 const DEFAULT_AGENTS: Agent[] = [
   {
@@ -70,7 +69,7 @@ export default function ArenaPage() {
   const executeTurnCycle = async () => {
     if (!currentSession || !autoRunRef.current) return;
 
-    if (!canExecuteTurn(currentSession, currentSession.agents)) {
+    if (!canExecuteTurn(currentSession)) {
       toast.error('Missing required agents (Red, Blue, Purple)');
       setIsAutoRunning(false);
       return;
@@ -85,7 +84,7 @@ export default function ArenaPage() {
         currentSession.agents,
         newTurnState,
         state!,
-        (message) => {
+        (message: Message) => {
           // Immediately add message to session as it's generated
           setCurrentSession(prev => {
             if (!prev) return prev;
@@ -141,7 +140,7 @@ export default function ArenaPage() {
         agent,
         currentSession,
         state!,
-        (message) => {
+        (message: Message) => {
           // Immediately add message to session as it's generated
           setCurrentSession(prev => {
             if (!prev) return prev;
@@ -207,6 +206,9 @@ export default function ArenaPage() {
 
   const handlePauseSession = () => {
     if (!currentSession) return;
+    const newTurnState = { ...turnState };
+    pauseTurnExecution(newTurnState);
+    setTurnState(newTurnState);
     setIsAutoRunning(false);
     setCurrentSession({ ...currentSession, status: 'paused' });
     toast.info('Session paused');
@@ -241,23 +243,6 @@ export default function ArenaPage() {
     toast.success('Agent updated - hot-swapped successfully');
   };
 
-  const handleAddAgent = (agent: Agent) => {
-    if (!currentSession) return;
-    setCurrentSession({
-      ...currentSession,
-      agents: [...currentSession.agents, agent],
-    });
-    toast.success('Agent added to session');
-  };
-
-  const handleRemoveAgent = (agentId: string) => {
-    if (!currentSession) return;
-    setCurrentSession({
-      ...currentSession,
-      agents: currentSession.agents.filter(a => a.id !== agentId),
-    });
-    toast.success('Agent removed from session');
-  };
 
   return (
     <div className="min-h-screen bg-background p-6">

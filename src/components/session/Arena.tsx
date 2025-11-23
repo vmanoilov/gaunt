@@ -19,9 +19,9 @@ const roleColors = {
 // Use centralized role mapping for consistency
 const roleLabels = {
   human: 'Human',
-  red: `${COLOR_ROLES.red.charAt(0).toUpperCase() + COLOR_ROLES.red.slice(1)}`,
-  blue: `${COLOR_ROLES.blue.charAt(0).toUpperCase() + COLOR_ROLES.blue.slice(1)}`,
-  purple: `${COLOR_ROLES.purple.charAt(0).toUpperCase() + COLOR_ROLES.purple.slice(1)}`,
+  red: 'Red',
+  blue: 'Blue',
+  purple: 'Purple',
 };
 
 export function Arena({ messages }: ArenaProps) {
