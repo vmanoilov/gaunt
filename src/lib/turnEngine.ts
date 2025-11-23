@@ -1,35 +1,138 @@
-import type { Agent, Message, Session } from './types';
+import type { Agent, Message, Session, AppState } from './types';
 import { generateId } from './utils';
 import { calculateHeuristicScore } from './scoring';
+import { callModel } from './connectors';
+
+// Turn execution state
+export interface TurnState {
+  isRunning: boolean;
+  isPaused: boolean;
+  shouldStop: boolean;
+  skipNext: boolean;
+  currentAgentIndex: number;
+  roleOrder: Array<'red' | 'blue' | 'purple'>;
+}
+
+// Initialize turn state
+export function initializeTurnState(): TurnState {
+  return {
+    isRunning: false,
+    isPaused: false,
+    shouldStop: false,
+    skipNext: false,
+    currentAgentIndex: 0,
+    roleOrder: ['red', 'blue', 'purple']
+  };
+}
 
 /**
- * Execute a complete turn cycle with all agents.
+ * Execute a complete turn cycle with all agents sequentially.
  * Each agent sees the full conversation history including messages from the current turn.
  * Messages appear immediately as they're generated.
  */
 export async function executeTurn(
   session: Session,
   agents: Agent[],
+  turnState: TurnState,
+  appState: AppState,
   onMessageGenerated?: (message: Message) => void
 ): Promise<Message[]> {
   const newMessages: Message[] = [];
-  const roleOrder: Array<'red' | 'blue' | 'purple'> = ['red', 'blue', 'purple'];
+  turnState.isRunning = true;
+  turnState.shouldStop = false;
+  turnState.currentAgentIndex = 0;
   
-  for (const role of roleOrder) {
+  for (let i = 0; i < turnState.roleOrder.length; i++) {
+    // Check if we should stop execution
+    if (turnState.shouldStop) {
+      break;
+    }
+    
+    // Check if we should skip this agent
+    if (turnState.skipNext) {
+      turnState.skipNext = false;
+      turnState.currentAgentIndex++;
+      continue;
+    }
+    
+    turnState.currentAgentIndex = i;
+    const role = turnState.roleOrder[i];
     const agent = agents.find(a => a.role === role);
-    if (!agent) continue;
+    
+    if (!agent) {
+      turnState.currentAgentIndex++;
+      continue;
+    }
     
     // Pass all messages so far (including current turn) for full context
-    const message = await generateAgentMessage(agent, session, newMessages);
+    const message = await generateAgentMessage(agent, session, newMessages, appState);
     newMessages.push(message);
+    
+    // Update session with the new message immediately
+    session.messages.push(message);
     
     // Immediately notify caller of new message (for real-time display)
     if (onMessageGenerated) {
       onMessageGenerated(message);
     }
+    
+    turnState.currentAgentIndex++;
   }
   
+  turnState.isRunning = false;
   return newMessages;
+}
+
+/**
+ * Compute the next participant in the turn order
+ */
+export function getNextParticipant(turnState: TurnState): 'red' | 'blue' | 'purple' | null {
+  if (turnState.currentAgentIndex >= turnState.roleOrder.length) {
+    return null; // All agents have taken their turn
+  }
+  return turnState.roleOrder[turnState.currentAgentIndex];
+}
+
+/**
+ * Skip the current agent's turn
+ */
+export function skipCurrentAgent(turnState: TurnState): void {
+  turnState.skipNext = true;
+}
+
+/**
+ * Stop the turn execution immediately
+ */
+export function stopTurnExecution(turnState: TurnState): void {
+  turnState.shouldStop = true;
+}
+
+/**
+ * Pause the turn execution after current agent
+ */
+export function pauseTurnExecution(turnState: TurnState): void {
+  turnState.isPaused = true;
+}
+
+/**
+ * Execute a single agent's turn (for manual mode)
+ */
+export async function executeAgentTurn(
+  agent: Agent,
+  session: Session,
+  appState: AppState,
+  onMessageGenerated?: (message: Message) => void
+): Promise<Message> {
+  const message = await generateAgentMessage(agent, session, [], appState);
+  
+  // Update session with the new message immediately
+  session.messages.push(message);
+  
+  if (onMessageGenerated) {
+    onMessageGenerated(message);
+  }
+  
+  return message;
 }
 
 /**
@@ -42,13 +145,40 @@ export async function executeTurn(
 async function generateAgentMessage(
   agent: Agent,
   session: Session,
-  currentTurnMessages: Message[]
+  currentTurnMessages: Message[],
+  appState: AppState
 ): Promise<Message> {
   // Full conversation history: previous turns + current turn
   const allMessages = [...session.messages, ...currentTurnMessages];
   
-  // Generate response with context
-  const content = generateMockResponse(agent, session.seedPrompt, allMessages);
+  // Try to call real API first, fall back to mock if no API key or error
+  let content: string;
+  if (appState && agent.providerId && agent.modelId) {
+    try {
+      const provider = appState.providers.find(p => p.id === agent.providerId);
+      if (provider) {
+        const result = await callModel(provider, agent.modelId, allMessages, appState.secrets, {
+          temperature: agent.temperature || 0.7,
+          maxTokens: 1000
+        });
+
+        if (result.success && result.content) {
+          content = result.content;
+        } else {
+          // Fall back to mock response
+          content = generateMockResponse(agent, session.seedPrompt, allMessages);
+        }
+      } else {
+        content = generateMockResponse(agent, session.seedPrompt, allMessages);
+      }
+    } catch (error) {
+      console.warn('API call failed, using mock response:', error);
+      content = generateMockResponse(agent, session.seedPrompt, allMessages);
+    }
+  } else {
+    // No API configuration, use mock response
+    content = generateMockResponse(agent, session.seedPrompt, allMessages);
+  }
   
   const message: Message = {
     id: generateId(),
@@ -127,19 +257,3 @@ export function canExecuteTurn(session: Session, agents: Agent[]): boolean {
   return requiredRoles.every(role => agents.some(a => a.role === role));
 }
 
-/**
- * Execute a single agent's turn (for manual mode)
- */
-export async function executeAgentTurn(
-  agent: Agent,
-  session: Session,
-  onMessageGenerated?: (message: Message) => void
-): Promise<Message> {
-  const message = await generateAgentMessage(agent, session, []);
-  
-  if (onMessageGenerated) {
-    onMessageGenerated(message);
-  }
-  
-  return message;
-}
