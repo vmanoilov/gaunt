@@ -13,6 +13,7 @@ import {
   canExecuteTurn,
   executeAgentTurn,
   executeTurn,
+  getNextParticipant,
   initializeTurnState,
   pauseTurnExecution,
   skipCurrentAgent,
@@ -69,7 +70,7 @@ export default function ArenaPage() {
   const executeTurnCycle = async () => {
     if (!currentSession || !autoRunRef.current) return;
 
-    if (!canExecuteTurn(currentSession)) {
+    if (!canExecuteTurn(currentSession, currentSession.agents)) {
       toast.error('Missing required agents (Red, Blue, Purple)');
       setIsAutoRunning(false);
       return;
@@ -243,6 +244,23 @@ export default function ArenaPage() {
     toast.success('Agent updated - hot-swapped successfully');
   };
 
+  const handleAddAgent = (agent: Agent) => {
+    if (!currentSession) return;
+    setCurrentSession({
+      ...currentSession,
+      agents: [...currentSession.agents, agent],
+    });
+    toast.success('Agent added to session');
+  };
+
+  const handleRemoveAgent = (agentId: string) => {
+    if (!currentSession) return;
+    setCurrentSession({
+      ...currentSession,
+      agents: currentSession.agents.filter(a => a.id !== agentId),
+    });
+    toast.success('Agent removed from session');
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
