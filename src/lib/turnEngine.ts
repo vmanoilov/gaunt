@@ -252,8 +252,7 @@ function generateMockResponse(
 /**
  * Check if a turn can be executed (all required agents present)
  */
-export function canExecuteTurn(session: Session): boolean {
-  const agents = session.agents;
+export function canExecuteTurn(session: Session, agents: Agent[]): boolean {
   const requiredRoles: Array<'red' | 'blue' | 'purple'> = ['red', 'blue', 'purple'];
   return requiredRoles.every(role => agents.some(a => a.role === role));
 }
