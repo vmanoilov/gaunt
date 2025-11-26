@@ -1,0 +1,159 @@
+.
+├── CHANGES.md
+├── README.md
+├── biome.json
+├── bla.txt
+├── bla2.txt
+├── components.json
+├── dist
+│   ├── assets
+│   │   ├── index-CooG51sU.js
+│   │   └── index-D-dZdsqk.css
+│   ├── favicon.png
+│   ├── images
+│   │   ├── error
+│   │   │   ├── 404-dark.svg
+│   │   │   ├── 404.svg
+│   │   │   ├── 500-dark.svg
+│   │   │   ├── 500.svg
+│   │   │   ├── 503-dark.svg
+│   │   │   └── 503.svg
+│   │   ├── favicon.ico
+│   │   ├── logo
+│   │   │   ├── auth-logo.svg
+│   │   │   ├── logo-dark.svg
+│   │   │   └── logo-icon.svg
+│   │   └── shape
+│   │       └── grid-01.svg
+│   └── index.html
+├── index.html
+├── package-lock.json
+├── package.json
+├── pnpm-workspace.yaml
+├── postcss.config.js
+├── public
+│   ├── favicon.png
+│   └── images
+│       ├── error
+│       │   ├── 404-dark.svg
+│       │   ├── 404.svg
+│       │   ├── 500-dark.svg
+│       │   ├── 500.svg
+│       │   ├── 503-dark.svg
+│       │   └── 503.svg
+│       ├── favicon.ico
+│       ├── logo
+│       │   ├── auth-logo.svg
+│       │   ├── logo-dark.svg
+│       │   └── logo-icon.svg
+│       └── shape
+│           └── grid-01.svg
+├── sgconfig.yml
+├── src
+│   ├── App.tsx
+│   ├── components
+│   │   ├── admin
+│   │   │   ├── AdminPanel.tsx
+│   │   │   ├── ModelsTab.tsx
+│   │   │   ├── ProvidersTab.tsx
+│   │   │   └── SecretsTab.tsx
+│   │   ├── common
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   └── PageMeta.tsx
+│   │   ├── dropzone.tsx
+│   │   ├── session
+│   │   │   ├── Arena.tsx
+│   │   │   ├── MetricsPanel.tsx
+│   │   │   ├── Participants.tsx
+│   │   │   ├── PromptInjector.tsx
+│   │   │   └── SessionControl.tsx
+│   │   └── ui
+│   │       ├── accordion.tsx
+│   │       ├── alert-dialog.tsx
+│   │       ├── alert.tsx
+│   │       ├── aspect-ratio.tsx
+│   │       ├── avatar.tsx
+│   │       ├── badge.tsx
+│   │       ├── breadcrumb.tsx
+│   │       ├── button.tsx
+│   │       ├── calendar.tsx
+│   │       ├── card.tsx
+│   │       ├── carousel.tsx
+│   │       ├── chart.tsx
+│   │       ├── checkbox.tsx
+│   │       ├── collapsible.tsx
+│   │       ├── command.tsx
+│   │       ├── dialog.tsx
+│   │       ├── drawer.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── form.tsx
+│   │       ├── input-otp.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── menubar.tsx
+│   │       ├── multi-select.tsx
+│   │       ├── navigation-menu.tsx
+│   │       ├── pagination.tsx
+│   │       ├── popover.tsx
+│   │       ├── progress.tsx
+│   │       ├── qrcodedataurl.tsx
+│   │       ├── radio-group.tsx
+│   │       ├── resizable.tsx
+│   │       ├── scroll-area.tsx
+│   │       ├── select.tsx
+│   │       ├── separator.tsx
+│   │       ├── sheet.tsx
+│   │       ├── sidebar.tsx
+│   │       ├── skeleton.tsx
+│   │       ├── slider.tsx
+│   │       ├── sonner.tsx
+│   │       ├── switch.tsx
+│   │       ├── table.tsx
+│   │       ├── tabs.tsx
+│   │       ├── textarea.tsx
+│   │       ├── toast.tsx
+│   │       ├── toaster.tsx
+│   │       ├── toggle-group.tsx
+│   │       ├── toggle.tsx
+│   │       ├── tooltip.tsx
+│   │       └── video.tsx
+│   ├── global.d.ts
+│   ├── hooks
+│   │   ├── use-debounce.ts
+│   │   ├── use-go-back.ts
+│   │   ├── use-mobile.ts
+│   │   ├── use-supabase-upload.ts
+│   │   └── use-toast.tsx
+│   ├── index.css
+│   ├── lib
+│   │   ├── connectors.ts
+│   │   ├── export.ts
+│   │   ├── providers.ts
+│   │   ├── scoring.ts
+│   │   ├── secrets.ts
+│   │   ├── storage.ts
+│   │   ├── turnEngine.ts
+│   │   ├── types.ts
+│   │   └── utils.ts
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── AdminPage.tsx
+│   │   ├── ArenaPage.tsx
+│   │   ├── NotFound.tsx
+│   │   └── SamplePage.tsx
+│   ├── routes.tsx
+│   ├── services
+│   ├── svg.d.ts
+│   ├── types
+│   │   └── index.ts
+│   └── vite-env.d.ts
+├── tailwind.config.mjs
+├── tsconfig.app.json
+├── tsconfig.check.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.dev.ts
+└── vite.config.ts
+
+23 directories, 134 files
